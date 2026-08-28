@@ -3,37 +3,48 @@ Atividade: Ferramenta scikit-learn - fluxo básico de Machine Learning.
 Contexto: prever aprovação ou reprovação de alunos a partir de horas de estudo e faltas.
 """
 
+import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
 
 # Etapa 1 - Preparação dos dados
-# X contém as características (features) usadas pelo modelo:
-# coluna 1 = horas de estudo e coluna 2 = número de faltas.
-X = [
-    [2, 1],
-    [4, 0],
-    [1, 3],
-    [3, 1],
-    [5, 0],
-    [2, 2],
+# X contém as características (features): horas de estudo e número de faltas.
+# y contém o resultado conhecido: 0 = reprovado e 1 = aprovado.
+# Foram adicionados 200 alunos ao conjunto original, totalizando 206 registros.
+dados = [
+    (2, 1, 0), (4, 0, 1), (1, 3, 0), (3, 1, 1), (5, 0, 1), (2, 2, 0),
 ]
 
-# y contém o resultado conhecido de cada aluno (rótulo/target):
-# 0 = reprovado e 1 = aprovado.
-y = [0, 1, 0, 1, 1, 0]
+# Dados adicionais: 200 exemplos sintéticos para tornar o conjunto maior.
+# A regra usada para gerar os rótulos é: maior estudo e menos faltas tendem a favorecer aprovação.
+for aluno in range(200):
+    horas = 1 + (aluno * 3) % 6
+    faltas = (aluno * 2 + 1) % 5
+    aprovado = 1 if horas >= 3 and faltas <= 2 else 0
+    dados.append((horas, faltas, aprovado))
+
+# DataFrame do pandas: tabela organizada para visualizar e manipular os dados.
+df = pd.DataFrame(dados, columns=["horas_estudo", "faltas", "resultado"])
+
+print("Tabela dos alunos:")
+print(df.to_string(index=False))
+print(f"\nTotal de alunos: {len(df)}")
+
+X = df[["horas_estudo", "faltas"]]
+y = df["resultado"]
 
 
 # Etapa 2 - Separação em treino e teste
-# train_test_split separa os dados para que o modelo aprenda com uma parte
-# e seja avaliado em exemplos que não foram usados durante o treinamento.
-# Não devemos treinar e testar com os mesmos dados porque isso pode esconder
-# erros de generalização e produzir uma avaliação artificialmente otimista.
+# O conjunto é dividido para que o modelo aprenda com uma parte e seja avaliado
+# em exemplos que não foram usados durante o treinamento.
+# Não devemos usar os mesmos dados para treino e teste, pois isso pode gerar uma
+# avaliação artificialmente otimista e não medir corretamente a generalização.
 X_train, X_test, y_train, y_test = train_test_split(
     X,
     y,
-    test_size=0.33,
+    test_size=0.20,
     random_state=42,
     stratify=y,
 )
@@ -41,34 +52,34 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 # Etapa 3 - Criação do modelo
 # A Regressão Logística foi escolhida por ser simples, supervisionada e adequada
-# para uma classificação binária como aprovado (1) ou reprovado (0).
+# para uma classificação binária: aprovado (1) ou reprovado (0).
 modelo = LogisticRegression(random_state=42)
 
-# Treinar um modelo significa ajustar seus parâmetros usando os dados de treino,
-# procurando aprender a relação entre as características X e os resultados y.
+# Treinar significa ajustar os parâmetros do modelo usando os dados de treino,
+# buscando aprender a relação entre as características e os resultados conhecidos.
 
 
 # Etapa 4 - Treinamento
-# Os dados de treino são os exemplos que o algoritmo usa para aprender esse padrão.
+# Os dados de treino são os exemplos utilizados pelo algoritmo para aprender padrões.
 modelo.fit(X_train, y_train)
 
 
 # Etapa 5 - Avaliação
-# Agora o modelo faz previsões sobre os dados de teste, que ficaram separados.
+# O modelo faz previsões sobre dados de teste que ficaram separados do treinamento.
 y_pred = modelo.predict(X_test)
 
-# A acurácia indica a proporção de previsões corretas entre todas as previsões.
+# A acurácia representa a proporção de previsões corretas entre todas as previsões.
 acuracia = accuracy_score(y_test, y_pred)
 
-print("Resultados da avaliação")
-print(f"Dados de teste: {X_test}")
-print(f"Resultados reais: {y_test}")
-print(f"Previsões: {y_pred.tolist()}")
+print("\nResultados da avaliação")
+print(f"Quantidade de dados de treino: {len(X_train)}")
+print(f"Quantidade de dados de teste: {len(X_test)}")
 print(f"Acurácia: {acuracia:.2%}")
 
 
 # Etapa 6 - Análise final
-# A acurácia deste pequeno conjunto de teste foi de 100%, mas isso NÃO significa
-# que o modelo terá 100% de acerto em novos alunos. A amostra é muito pequena,
-# portanto o resultado tem alta incerteza. Este exercício representa apenas um
-# primeiro passo: modelos reais precisam de mais dados, validação e análise.
+# O conjunto maior permite uma avaliação mais representativa que os 6 exemplos iniciais,
+# mas os dados continuam sendo sintéticos e seguem uma regra artificial.
+# Portanto, uma acurácia alta não garante bom desempenho com alunos reais.
+# Em um projeto real seriam necessários dados reais, mais variáveis, validação cruzada
+# e análise de métricas como precisão, recall e matriz de confusão.
